@@ -7,6 +7,7 @@ interface Holding {
   tradingsymbol?: string
   quantity?: number
   average_price?: number
+  last_price?: number
   pnl?: number
   [key: string]: unknown
 }
@@ -38,6 +39,12 @@ export function Holdings() {
       header: 'Avg Price',
       render: (r: Holding) =>
         r.average_price != null ? `₹${Number(r.average_price).toFixed(2)}` : '-',
+    },
+    {
+      key: 'last_price',
+      header: 'LTP',
+      render: (r: Holding) =>
+        r.last_price != null ? `₹${Number(r.last_price).toFixed(2)}` : '-',
     },
     {
       key: 'pnl',

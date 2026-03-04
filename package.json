@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "pnpm --filter @trading-system/web dev",
+    "start": "turbo run dev --parallel",
     "dev": "turbo run dev --parallel",
     "dev:web": "pnpm --filter @trading-system/web dev",
     "dev:server": "pnpm --filter @trading-system/server dev",

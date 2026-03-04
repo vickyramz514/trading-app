@@ -12,3 +12,7 @@ export const profileApi = () => api.get('/profile')
 export const holdingsApi = () => api.get('/holdings')
 export const positionsApi = () => api.get('/positions')
 export const quoteApi = (symbol: string) => api.get('/quote', { params: { symbol } })
+
+export const kiteStatusApi = () => api.get('/kite/status')
+export const kiteLoginApi = () => api.get('/kite/login')
+export const kiteLogoutApi = () => api.post('/kite/logout')

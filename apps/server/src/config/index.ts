@@ -16,6 +16,13 @@ export const config = {
       quote: process.env.BROKER_PATH_QUOTE ?? '/market/quote',
     },
   },
+  zerodha: {
+    apiKey: process.env.KITE_API_KEY ?? '',
+    apiSecret: process.env.KITE_API_SECRET ?? '',
+    redirectUrl: process.env.KITE_REDIRECT_URL ?? 'http://127.0.0.1:3002/api/kite/callback',
+    baseUrl: 'https://api.kite.trade',
+    loginUrl: 'https://kite.zerodha.com/connect/login',
+  },
   jwt: {
     secret: process.env.JWT_SECRET ?? 'dev-secret-change-in-production',
   },

@@ -8,11 +8,16 @@ interface QuoteData {
 
 function formatQuote(data: QuoteData): { label: string; value: string }[] {
   const entries: { label: string; value: string }[] = []
-  const skip = ['success', 'data']
+  const skip = ['success', 'data', 'depth']
 
   for (const [k, v] of Object.entries(data)) {
     if (skip.includes(k)) continue
-    if (v != null && typeof v !== 'object') {
+    if (k === 'ohlc' && v && typeof v === 'object') {
+      const o = v as Record<string, unknown>
+      ;['open', 'high', 'low', 'close'].forEach((f) => {
+        if (o[f] != null) entries.push({ label: `OHLC.${f}`, value: String(o[f]) })
+      })
+    } else if (v != null && typeof v !== 'object') {
       entries.push({ label: k, value: String(v) })
     }
   }

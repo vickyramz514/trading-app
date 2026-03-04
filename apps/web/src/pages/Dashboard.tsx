@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { profileApi, holdingsApi } from '../services/api'
+import { useSearchParams } from 'react-router-dom'
+import { profileApi, holdingsApi, kiteStatusApi, kiteLoginApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { Card } from '../components/Card'
 
@@ -16,20 +17,40 @@ interface HoldingsData {
   }
 }
 
+interface KiteStatus {
+  connected: boolean
+  configured: boolean
+  user_name?: string
+}
+
 export function Dashboard() {
   const { user: authUser } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [holdings, setHoldings] = useState<HoldingsData | null>(null)
+  const [kiteStatus, setKiteStatus] = useState<KiteStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [kiteConnecting, setKiteConnecting] = useState(false)
+
+  useEffect(() => {
+    const kiteLogin = searchParams.get('kite_login')
+    const kiteError = searchParams.get('error')
+    if (kiteLogin || kiteError) {
+      setSearchParams({}, { replace: true })
+      if (kiteError) setError(decodeURIComponent(kiteError))
+    }
+  }, [searchParams, setSearchParams])
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const [profileRes, holdingsRes] = await Promise.all([
+        const [profileRes, holdingsRes, statusRes] = await Promise.all([
           profileApi(),
           holdingsApi(),
+          kiteStatusApi().catch(() => ({ data: { connected: false, configured: false } })),
         ])
+        setKiteStatus((statusRes as { data: KiteStatus })?.data ?? null)
         const pr = profileRes.data as ProfileData & { success?: boolean }
         const hr = holdingsRes.data as HoldingsData & { success?: boolean }
         if (pr?.success === false || hr?.success === false) {
@@ -91,11 +112,32 @@ export function Dashboard() {
     )
   }
 
-  const totalValue =
-    (holdings?.data as { net?: number })?.net ??
-    (holdings?.data as { total?: number })?.total ??
-    (holdings?.data as { total_investment?: number })?.total_investment ??
-    '-'
+  const holdingsList = Array.isArray(holdings?.data)
+    ? (holdings.data as Array<{ quantity?: number; last_price?: number; average_price?: number }>)
+    : []
+  const totalValue = holdingsList.length
+    ? holdingsList.reduce(
+        (sum, h) => sum + (Number(h.quantity) ?? 0) * (Number(h.last_price) ?? Number(h.average_price) ?? 0),
+        0
+      )
+    : (holdings?.data as { net?: number })?.net ??
+      (holdings?.data as { total?: number })?.total ??
+      (holdings?.data as { total_investment?: number })?.total_investment ??
+      '-'
+
+  const handleConnectZerodha = async () => {
+    setKiteConnecting(true)
+    try {
+      const res = await kiteLoginApi()
+      const url = (res.data as { loginUrl?: string })?.loginUrl
+      if (url) window.location.href = url
+      else setError('Login URL not available')
+    } catch {
+      setError('Failed to get Zerodha login URL')
+    } finally {
+      setKiteConnecting(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -104,7 +146,23 @@ export function Dashboard() {
           <strong>Note:</strong> {error}
         </div>
       )}
-      <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+        {kiteStatus?.configured && !kiteStatus?.connected && (
+          <button
+            onClick={handleConnectZerodha}
+            disabled={kiteConnecting}
+            className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-500 disabled:opacity-50"
+          >
+            {kiteConnecting ? 'Redirecting...' : 'Connect Zerodha'}
+          </button>
+        )}
+        {kiteStatus?.connected && (
+          <span className="rounded-md bg-emerald-100 px-3 py-1.5 text-sm font-medium text-emerald-800">
+            Zerodha: {kiteStatus.user_name ?? 'Connected'}
+          </span>
+        )}
+      </div>
       <div className="grid gap-6 md:grid-cols-2">
         <Card title="Profile">
           <p className="text-sm text-slate-500">Name</p>
