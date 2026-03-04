@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "pnpm --filter @trading-system/web dev",
     "dev": "turbo run dev --parallel",
     "dev:web": "pnpm --filter @trading-system/web dev",
     "dev:server": "pnpm --filter @trading-system/server dev",
+    "preview": "pnpm --filter @trading-system/web preview",
     "build": "turbo run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

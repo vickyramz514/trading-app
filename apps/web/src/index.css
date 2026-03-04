@@ -1,5 +1,11 @@
+@import "tailwindcss";
+
 :root {
   font-family: system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --accent: 16 185 129; /* emerald-500 */
+  --accent-hover: 5 150 105; /* emerald-600 */
+}
+
+body {
+  background-color: #f1f5f9;
 }
